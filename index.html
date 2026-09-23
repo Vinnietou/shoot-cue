@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14160f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Shoot Cue</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    :root {
+      --bg: #14160f;
+      --card: #1e2118;
+      --ink: #f3f0e4;
+      --muted: #a7a292;
+      --line: #34382c;
+      --acid: #e8ff47;
+      --acid-ink: #1a1c10;
+      --hot: #ff4d1c;
+      --break: #8fd0ff;
+      --danger: #ffb4a8;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; }
+
+    body {
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Bahnschrift, "Segoe UI", Roboto, sans-serif;
+      padding:
+        max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(20px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+    }
+
+    .app {
+      width: 100%;
+      max-width: 28rem;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 8px 14px 12px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 58px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .row:last-child { border-bottom: 0; }
+
+    .row label {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .stepper input {
+      width: 2.8rem;
+      min-width: 0;
+      max-width: 3rem;
+      background: transparent;
+      color: var(--ink);
+      border: 0;
+      font: inherit;
+      font-size: 1.45rem;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      padding: 0;
+    }
+
+    .stepper input:focus {
+      outline: 2px solid var(--acid);
+      border-radius: 8px;
+    }
+
+    button, input { font: inherit; }
+
+    .step {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #2a2e22;
+      color: var(--ink);
+      font-size: 1.4rem;
+      line-height: 1;
+      touch-action: manipulation;
+    }
+
+    .step:disabled,
+    .primary:disabled,
+    .ghost:disabled,
+    .stepper input:disabled {
+      opacity: 0.4;
+    }
+
+    .unit {
+      width: 1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .volume {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .volume input[type="range"] {
+      width: 100%;
+      min-width: 0;
+      accent-color: var(--acid);
+      height: 32px;
+    }
+
+    .stage {
+      margin-top: 16px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      min-height: 210px;
+      padding: 18px 16px 16px;
+      text-align: center;
+      background: #191c14;
+      transition: background 120ms linear, color 120ms linear;
+    }
+
+    .eyebrow {
+      margin: 0;
+      letter-spacing: 0.16em;
+      font-size: 0.78rem;
+      color: var(--acid);
+    }
+
+    .number {
+      margin: 8px 0 0;
+      font-size: clamp(3.4rem, 18vw, 6.2rem);
+      line-height: 0.9;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    .caption {
+      margin: 8px 0 0;
+      color: var(--muted);
+      min-height: 1.3em;
+    }
+
+    .track-wrap { margin-top: 16px; }
+
+    .track {
+      position: relative;
+      height: 12px;
+      border-radius: 999px;
+      background: #2c3024;
+    }
+
+    .window {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: rgba(232, 255, 71, 0.45);
+      border-radius: 999px;
+    }
+
+    .playhead {
+      position: absolute;
+      top: -5px;
+      width: 4px;
+      height: 22px;
+      margin-left: -2px;
+      border-radius: 4px;
+      background: var(--ink);
+    }
+
+    .scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    body.flash .stage {
+      background: var(--hot);
+      color: #2a0c06;
+      border-color: #ffd0c4;
+    }
+
+    body.flash .eyebrow,
+    body.flash .caption,
+    body.flash .scale { color: #2a0c06; }
+
+    body.is-break .eyebrow { color: var(--break); }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .primary, .ghost {
+      height: 58px;
+      min-width: 0;
+      border-radius: 16px;
+      border: 0;
+      padding: 0 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      touch-action: manipulation;
+    }
+
+    .primary {
+      background: var(--acid);
+      color: var(--acid-ink);
+    }
+
+    body.is-running .primary {
+      background: var(--hot);
+      color: #2a0c06;
+    }
+
+    .ghost {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .error {
+      min-height: 1.2em;
+      margin: 10px 0 0;
+      color: var(--danger);
+      font-size: 0.92rem;
+    }
+
+    .wake {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.35;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stage { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>SHOOT CUE</h1>
+      <p>Each round counts up from zero. A short whistle marks the moment to shoot, somewhere between your start and end. Then it waits out the break and the counter starts again.</p>
+    </header>
+
+    <section class="card" aria-label="Timing">
+      <div class="row">
+        <label for="start">Start</label>
+        <div class="stepper">
+          <button class="step" type="button" data-bump="start" data-delta="-1" aria-label="Decrease start second">−</button>
+          <input id="start" size="2" inputmode="numeric" value="5" aria-describedby="start-unit">
+          <span class="unit" id="start-unit">s</span>
+          <button class="step" type="button" data-bump="start" data-delta="1" aria-label="Increase start second">+</button>
+        </div>
+      </div>
+      <div class="row">
+        <label for="end">End</label>
+        <div class="stepper">
+          <button class="step" type="button" data-bump="end" data-delta="-1" aria-label="Decrease end second">−</button>
+          <input id="end" size="2" inputmode="numeric" value="15" aria-describedby="end-unit">
+          <span class="unit" id="end-unit">s</span>
+          <button class="step" type="button" data-bump="end" data-delta="1" aria-label="Increase end second">+</button>
+        </div>
+      </div>
+      <div class="row">
+        <label for="break">Break</label>
+        <div class="stepper">
+          <button class="step" type="button" data-bump="break" data-delta="-1" aria-label="Decrease break">−</button>
+          <input id="break" size="2" inputmode="numeric" value="10" aria-describedby="break-unit">
+          <span class="unit" id="break-unit">s</span>
+          <button class="step" type="button" data-bump="break" data-delta="1" aria-label="Increase break">+</button>
+        </div>
+      </div>
+      <div class="row">
+        <label for="volume">Loudness</label>
+        <div class="volume">
+          <input id="volume" type="range" min="5" max="100" value="80" aria-valuemin="5" aria-valuemax="100">
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" aria-hidden="true">
+      <p class="eyebrow" id="eyebrow">READY</p>
+      <p class="number" id="number">0.0</p>
+      <p class="caption" id="caption">Whistle between 5–15s</p>
+      <div class="track-wrap">
+        <div class="track">
+          <div class="window" id="window"></div>
+          <div class="playhead" id="playhead"></div>
+        </div>
+        <div class="scale">
+          <span>0s</span>
+          <span id="scale-end">15s</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button class="primary" id="toggle" type="button">Start</button>
+      <button class="ghost" id="test" type="button">Test whistle</button>
+    </div>
+
+    <div class="meta">
+        <span id="rounds">Cues this run: 0</span>
+      <span id="last-hit">Last hit: —</span>
+    </div>
+    <p class="error" id="error" role="alert"></p>
+    <p class="wake" id="wake" hidden>This page can’t keep the screen awake from here. Turn off auto-lock, or the phone may sleep and delay the whistle.</p>
+    <p class="sr-only" id="live" aria-live="polite"></p>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "sound-blast-settings-v1";
+    const CUE_MS = 320;
+    const MAX_SEC = 3600;
+
+    const els = {
+      start: document.getElementById("start"),
+      end: document.getElementById("end"),
+      break: document.getElementById("break"),
+      volume: document.getElementById("volume"),
+      eyebrow: document.getElementById("eyebrow"),
+      number: document.getElementById("number"),
+      caption: document.getElementById("caption"),
+      window: document.getElementById("window"),
+      playhead: document.getElementById("playhead"),
+      scaleEnd: document.getElementById("scale-end"),
+      toggle: document.getElementById("toggle"),
+      test: document.getElementById("test"),
+      rounds: document.getElementById("rounds"),
+      lastHit: document.getElementById("last-hit"),
+      error: document.getElementById("error"),
+      wake: document.getElementById("wake"),
+      live: document.getElementById("live"),
+    };
+
+    const state = {
+      running: false,
+      phase: "idle",
+      phaseStartedAt: 0,
+      blastAtMs: 0,
+      startSec: 5,
+      endSec: 15,
+      breakSec: 10,
+      gapMs: 0,
+      rounds: 0,
+      lastHit: null,
+      timer: null,
+    };
+
+    let audioCtx = null;
+    let compressor = null;
+    let wakeLock = null;
+    let flashTimer = null;
+
+    function clampSec(n) {
+      return Math.min(MAX_SEC, Math.max(0, n));
+    }
+
+    function readInt(input, fallback) {
+      const n = Number.parseInt(String(input.value).trim(), 10);
+      if (!Number.isFinite(n)) return fallback;
+      return clampSec(n);
+    }
+
+    function pickDelayMs(startSec, endSec, rand = Math.random) {
+      const min = Math.round(startSec * 1000);
+      const max = Math.round(endSec * 1000);
+      if (max <= min) return min;
+      return min + Math.floor(rand() * (max - min + 1));
+    }
+
+    function settingsValid() {
+      return readInt(els.end, 15) >= readInt(els.start, 5);
+    }
+
+    function showError(message) {
+      els.error.textContent = message;
+    }
+
+    function clearError() {
+      els.error.textContent = "";
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          start: els.start.value,
+          end: els.end.value,
+          break: els.break.value,
+          volume: els.volume.value,
+        }));
+      } catch (err) {
+        /* private mode can block storage */
+      }
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (saved.start != null) els.start.value = saved.start;
+        if (saved.end != null) els.end.value = saved.end;
+        if (saved.break != null) els.break.value = saved.break;
+        if (saved.volume != null) els.volume.value = saved.volume;
+      } catch (err) {
+        /* ignore broken storage */
+      }
+    }
+
+    function setRunningUI(running) {
+      document.body.classList.toggle("is-running", running);
+      els.toggle.textContent = running ? "Stop" : "Start";
+      els.toggle.setAttribute("aria-pressed", running ? "true" : "false");
+      for (const input of [els.start, els.end, els.break]) input.disabled = running;
+      for (const button of document.querySelectorAll(".step")) button.disabled = running;
+      els.test.disabled = running;
+    }
+
+    function formatElapsed(ms) {
+      return (ms / 1000).toFixed(1);
+    }
+
+    function paintTrack(startSec, endSec, ratio, mode) {
+      const span = Math.max(endSec, 0.001);
+      const clamped = Math.max(0, Math.min(100, ratio * 100));
+      if (mode === "break") {
+        els.window.style.left = "0%";
+        els.window.style.width = clamped + "%";
+        els.window.style.background = "rgba(143, 208, 255, 0.8)";
+      } else {
+        const left = (startSec / span) * 100;
+        const width = Math.max(0, ((endSec - startSec) / span) * 100);
+        els.window.style.left = left + "%";
+        els.window.style.width = width + "%";
+        els.window.style.background = "";
+      }
+      els.playhead.style.left = clamped + "%";
+      els.scaleEnd.textContent = endSec + "s";
+    }
+
+    function render() {
+      const startSec = state.running ? state.startSec : readInt(els.start, 5);
+      const endSec = state.running ? state.endSec : readInt(els.end, 15);
+      const breakSec = state.running ? state.breakSec : readInt(els.break, 10);
+      const elapsed = state.running ? performance.now() - state.phaseStartedAt : 0;
+      document.body.classList.toggle("is-break", state.running && state.phase === "break");
+
+      els.rounds.textContent = "Cues this run: " + state.rounds;
+      els.lastHit.textContent = state.lastHit == null
+        ? "Last hit: —"
+        : "Last hit: " + state.lastHit.toFixed(1) + "s";
+
+      if (!state.running || state.phase === "idle") {
+        els.eyebrow.textContent = "READY";
+        els.number.textContent = "0.0";
+        els.caption.textContent = "Whistle between " + startSec + "–" + endSec + "s · break " + breakSec + "s";
+        paintTrack(startSec, endSec, 0, "ready");
+        return;
+      }
+
+      if (state.phase === "counting") {
+        els.eyebrow.textContent = "COUNTING";
+        els.number.textContent = formatElapsed(elapsed);
+        els.caption.textContent = "Whistle somewhere in " + startSec + "–" + endSec + "s";
+        paintTrack(startSec, endSec, endSec === 0 ? 1 : elapsed / (endSec * 1000), "count");
+        return;
+      }
+
+      els.eyebrow.textContent = "BREAK";
+      if (breakSec === 0) {
+        els.number.textContent = "···";
+        els.caption.textContent = "Next round";
+      } else {
+        const remain = Math.max(0, state.gapMs - elapsed);
+        els.number.textContent = String(Math.ceil(remain / 1000));
+        els.caption.textContent = "Counter starts again after the break";
+      }
+      const ratio = state.gapMs === 0 ? 1 : elapsed / state.gapMs;
+      paintTrack(0, breakSec || 1, ratio, "break");
+      els.scaleEnd.textContent = (breakSec || 1) + "s";
+    }
+
+    function announce() {
+      if (!state.running) {
+        els.live.textContent = "Stopped.";
+        return;
+      }
+      if (state.phase === "counting") {
+        els.live.textContent = "Counting. Whistle between " + state.startSec + " and " + state.endSec + " seconds.";
+        return;
+      }
+      els.live.textContent = "Shoot. Break for " + state.breakSec + " seconds. Cues so far: " + state.rounds + ".";
+    }
+
+    function getAudio() {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      if (!audioCtx) {
+        audioCtx = new AudioCtx();
+        compressor = audioCtx.createDynamicsCompressor();
+        compressor.threshold.value = -8;
+        compressor.knee.value = 12;
+        compressor.ratio.value = 6;
+        compressor.attack.value = 0.002;
+        compressor.release.value = 0.12;
+        compressor.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playBlast() {
+      const ctx = getAudio();
+      if (!ctx || !compressor) return;
+      const when = ctx.currentTime;
+      const dur = 0.2;
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(Math.max(0.05, Math.min(1, Number(els.volume.value) / 100)), when);
+      master.connect(compressor);
+
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(1900, when);
+      osc.frequency.exponentialRampToValueAtTime(3600, when + 0.04);
+      osc.frequency.exponentialRampToValueAtTime(2700, when + dur);
+      const tone = ctx.createGain();
+      tone.gain.setValueAtTime(0.0001, when);
+      tone.gain.exponentialRampToValueAtTime(0.95, when + 0.006);
+      tone.gain.setValueAtTime(0.8, when + 0.12);
+      tone.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+      osc.connect(tone).connect(master);
+      osc.start(when);
+      osc.stop(when + dur + 0.02);
+
+      const length = Math.floor(ctx.sampleRate * dur);
+      const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < length; i += 1) data[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const band = ctx.createBiquadFilter();
+      band.type = "bandpass";
+      band.Q.value = 10;
+      band.frequency.setValueAtTime(1900, when);
+      band.frequency.exponentialRampToValueAtTime(3600, when + 0.04);
+      band.frequency.exponentialRampToValueAtTime(2700, when + dur);
+      const breath = ctx.createGain();
+      breath.gain.setValueAtTime(0.0001, when);
+      breath.gain.exponentialRampToValueAtTime(0.16, when + 0.008);
+      breath.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+      noise.connect(band).connect(breath).connect(master);
+      noise.start(when);
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate(50); } catch (err) { /* ignore */ }
+      }
+    }
+
+    function flash() {
+      document.body.classList.add("flash");
+      clearTimeout(flashTimer);
+      flashTimer = setTimeout(() => document.body.classList.remove("flash"), 280);
+    }
+
+    function beginCounting() {
+      state.startSec = readInt(els.start, 5);
+      state.endSec = readInt(els.end, 15);
+      state.breakSec = readInt(els.break, 10);
+      if (state.endSec < state.startSec) {
+        stop();
+        showError("End has to be the same second as start, or later.");
+        return;
+      }
+      state.blastAtMs = pickDelayMs(state.startSec, state.endSec);
+      state.phase = "counting";
+      state.phaseStartedAt = performance.now();
+      announce();
+    }
+
+    function triggerBlast() {
+      state.lastHit = state.blastAtMs / 1000;
+      state.rounds += 1;
+      try { playBlast(); } catch (err) { /* audio can fail before a gesture */ }
+      flash();
+      const configured = state.breakSec * 1000;
+      state.gapMs = Math.max(configured, CUE_MS);
+      state.phase = "break";
+      state.phaseStartedAt = performance.now();
+      announce();
+    }
+
+    function evaluate() {
+      if (!state.running) return;
+      const elapsed = performance.now() - state.phaseStartedAt;
+      if (state.phase === "counting" && elapsed >= state.blastAtMs) {
+        triggerBlast();
+        return;
+      }
+      if (state.phase === "break" && elapsed >= state.gapMs) beginCounting();
+    }
+
+    function loop() {
+      if (!state.running) return;
+      evaluate();
+      render();
+      if (!state.running) return;
+      state.timer = setTimeout(loop, 50);
+    }
+
+    async function requestWake() {
+      els.wake.hidden = true;
+      try {
+        if (!("wakeLock" in navigator)) throw new Error("unavailable");
+        wakeLock = await navigator.wakeLock.request("screen");
+      } catch (err) {
+        els.wake.hidden = false;
+      }
+    }
+
+    async function releaseWake() {
+      els.wake.hidden = true;
+      if (!wakeLock) return;
+      try { await wakeLock.release(); } catch (err) { /* already released */ }
+      wakeLock = null;
+    }
+
+    function start() {
+      if (state.running) return;
+      clearError();
+      const startSec = readInt(els.start, 5);
+      const endSec = readInt(els.end, 15);
+      els.start.value = String(startSec);
+      els.end.value = String(endSec);
+      els.break.value = String(readInt(els.break, 10));
+      if (endSec < startSec) {
+        showError("End has to be the same second as start, or later.");
+        render();
+        return;
+      }
+      saveSettings();
+      getAudio();
+      state.rounds = 0;
+      state.lastHit = null;
+      state.running = true;
+      setRunningUI(true);
+      beginCounting();
+      render();
+      loop();
+      requestWake();
+    }
+
+    function stop() {
+      state.running = false;
+      state.phase = "idle";
+      clearTimeout(state.timer);
+      state.timer = null;
+      clearTimeout(flashTimer);
+      document.body.classList.remove("flash");
+      setRunningUI(false);
+      releaseWake();
+      announce();
+      render();
+    }
+
+    function bump(which, delta) {
+      if (state.running) return;
+      const startSec = readInt(els.start, 5);
+      const endSec = readInt(els.end, 15);
+      const breakSec = readInt(els.break, 10);
+      if (which === "start") {
+        const next = clampSec(startSec + delta);
+        els.start.value = String(next);
+        if (next > endSec) els.end.value = String(next);
+      } else if (which === "end") {
+        const next = clampSec(endSec + delta);
+        els.end.value = String(next);
+        if (next < startSec) els.start.value = String(next);
+      } else {
+        els.break.value = String(clampSec(breakSec + delta));
+      }
+      clearError();
+      saveSettings();
+      render();
+    }
+
+    els.toggle.addEventListener("click", () => {
+      if (state.running) stop();
+      else start();
+    });
+
+    els.test.addEventListener("click", () => {
+      clearError();
+      getAudio();
+      try { playBlast(); } catch (err) { showError("This browser blocked the whistle."); }
+    });
+
+    document.querySelectorAll(".step").forEach((button) => {
+      button.addEventListener("click", () => {
+        bump(button.dataset.bump, Number(button.dataset.delta));
+      });
+    });
+
+    for (const input of [els.start, els.end, els.break, els.volume]) {
+      input.addEventListener("input", () => {
+        clearError();
+        saveSettings();
+        if (!state.running) render();
+      });
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && state.running) requestWake();
+    });
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+
+    loadSettings();
+    render();
+
+    function runSelfTest() {
+      const results = [];
+      const assert = (name, cond) => results.push((cond ? "PASS " : "FAIL ") + name);
+
+      assert("low edge", pickDelayMs(5, 15, () => 0) === 5000);
+      assert("high edge", pickDelayMs(5, 15, () => 0.999999) === 15000);
+      assert("same second", pickDelayMs(8, 8, () => 0.4) === 8000);
+
+      els.start.value = "4";
+      els.end.value = "9";
+      els.break.value = "3";
+      state.running = true;
+      state.rounds = 0;
+      state.startSec = 4;
+      state.endSec = 9;
+      state.breakSec = 3;
+      state.phase = "counting";
+      state.blastAtMs = 4000;
+      state.phaseStartedAt = performance.now() - 4000;
+      evaluate();
+      assert("blast increments", state.rounds === 1);
+      assert("enters break", state.phase === "break");
+      assert("records hit", state.lastHit === 4);
+      state.phaseStartedAt = performance.now() - state.gapMs;
+      evaluate();
+      assert("counter restarts", state.phase === "counting");
+      assert("new window", state.blastAtMs >= 4000 && state.blastAtMs <= 9000);
+
+      state.running = false;
+      state.phase = "idle";
+      els.start.value = "12";
+      els.end.value = "5";
+      start();
+      assert("rejects inverted window", state.running === false && els.error.textContent.length > 0);
+
+      els.start.value = "5";
+      els.end.value = "15";
+      els.break.value = "10";
+      clearError();
+      stop();
+
+      const ok = results.every((line) => line.startsWith("PASS"));
+      document.documentElement.dataset.selftest = ok ? "pass" : "fail";
+      document.documentElement.dataset.selftestDetail = results.join(" | ");
+      els.live.textContent = results.join(" | ");
+    }
+
+    const params = new URLSearchParams(location.search);
+    if (params.has("selftest")) runSelfTest();
+    if (params.has("autostart")) {
+      if (params.has("from")) els.start.value = params.get("from");
+      if (params.has("to")) els.end.value = params.get("to");
+      if (params.has("pause")) els.break.value = params.get("pause");
+      start();
+      setTimeout(() => {
+        document.documentElement.dataset.rounds = String(state.rounds);
+        document.documentElement.dataset.phase = state.phase;
+        document.documentElement.dataset.running = state.running ? "yes" : "no";
+      }, 1800);
+    }
+  </script>
+</body>
+</html>
