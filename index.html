@@ -47,12 +47,46 @@
       margin: 0 auto;
     }
 
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     header h1 {
       margin: 0;
       font-size: 1.35rem;
       letter-spacing: 0.02em;
       line-height: 1.15;
       font-weight: 700;
+    }
+
+    .flags {
+      display: flex;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+
+    .flag {
+      width: 38px;
+      height: 28px;
+      padding: 2px;
+      border-radius: 7px;
+      border: 2px solid transparent;
+      background: #2a2e22;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    .flag[aria-pressed="true"] {
+      border-color: var(--acid);
+    }
+
+    .flag svg {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
     header p {
@@ -433,62 +467,98 @@
 <body>
   <main class="app">
     <header>
-      <h1>Foosball Shooting Drill Counter</h1>
-      <p>This application supports foosball shooting drills with a randomized shot counter and sound cues that signal different shot variants. Select the range in which you want the sound cue to come. Select the break time you need to set the ball up for the next shot. If more than one gap is selected, you can assign a name for each gap (such as push long, or straight) and a sound from your phone’s library.</p>
-      <details class="drills">
-        <summary>For example drills, click for more</summary>
-        <h2>Drill 1: One gap, focused randomized shot</h2>
-        <p>This drill helps you train for waiting until a gap in the goalkeeper’s defense appears, and for executing the shot regardless of the time on the shot clock. Select the start and end time for when the randomized cue will sound. You can use the full range of the counter (between seconds 0 and 15) or any other interval (for example, start at second 5 to prevent shots too early in the shot clock). Select the break value that lets you comfortably reset the ball into the shooting position between tries. Select 1 gap so the baseline sound will play. You choose the gap in your mind’s eye. It is a good idea to set the goalkeeper figures in a position that lets you test both the execution and the cue. The drill is best for practicing the following skills:</p>
-        <ul>
-          <li>focus</li>
-          <li>shot readiness at all times</li>
-          <li>execution under pressure</li>
-        </ul>
-        <h2>Drill 2: Multiple gaps, randomized time and shot diet</h2>
-        <p>This exercise is designed to let you show your flexibility. Instead of waiting for a moment to shoot to kill, it forces you to execute a shot as soon as you hear the cue. For a snake shot, that lets you practice the movement from a relaxed position without making a decision early, and execute as soon as a gap opens or is noticed. Select the range of the timer for the randomized cues. Select 2 or more gaps, name them, and choose sounds that tell you what they mean (for example, choose 3 gaps and name them Straight, Long, and Middle; choose sounds you will recognize as those cues). Select the break value that lets you comfortably reset the ball into the shooting position between tries. The drill is best for practicing the following skills:</p>
-        <ul>
-          <li>flexibility and split-second decisions</li>
-          <li>observing the goalkeeper and using their errors</li>
-        </ul>
-        <h2>Drill 3: One gap, specific shot time</h2>
-        <p>This drill gives you a clear sense of shot time, particularly for shots later in the shot clock. It teaches consistency. Select a start time and an end time with no more than 1 second between them (for example, start at 6 and end at 7, and the cue always sounds in second 6). Select the break value that lets you comfortably reset the ball into the shooting position between tries. The drill is best for practicing the following skills:</p>
-        <ul>
-          <li>shot clock duration awareness</li>
-        </ul>
-        <p>And any other variations of the drills above.</p>
-      </details>
+      <div class="title-row">
+        <h1>Foosball Shooting Drill Counter</h1>
+        <div class="flags" role="group" aria-label="Language">
+          <button class="flag" type="button" data-lang="en" aria-pressed="true" aria-label="English">
+            <svg viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0 L60 40 M60 0 L0 40" stroke="#fff" stroke-width="10"/><path d="M0 0 L60 40 M60 0 L0 40" stroke="#C8102E" stroke-width="6"/><path d="M30 0 V40 M0 20 H60" stroke="#fff" stroke-width="16"/><path d="M30 0 V40 M0 20 H60" stroke="#C8102E" stroke-width="8"/></svg>
+          </button>
+          <button class="flag" type="button" data-lang="pl" aria-pressed="false" aria-label="Polski">
+            <svg viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#fff"/><rect y="20" width="60" height="20" fill="#dc143c"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="copy-en">
+        <p>This application supports foosball shooting drills with a randomized shot counter and sound cues that signal different shot variants. Select the range in which you want the sound cue to come. Select the break time you need to set the ball up for the next shot. If more than one gap is selected, you can assign a name for each gap (such as push long, or straight) and a sound from your phone’s library.</p>
+        <details class="drills">
+          <summary>For example drills, click for more</summary>
+          <h2>Drill 1: One gap, focused randomized shot</h2>
+          <p>This drill helps you train for waiting until a gap in the goalkeeper’s defense appears, and for executing the shot regardless of the time on the shot clock. Select the start and end time for when the randomized cue will sound. You can use the full range of the counter (between seconds 0 and 15) or any other interval (for example, start at second 5 to prevent shots too early in the shot clock). Select the break value that lets you comfortably reset the ball into the shooting position between tries. Select 1 gap so the baseline sound will play. You choose the gap in your mind’s eye. It is a good idea to set the goalkeeper figures in a position that lets you test both the execution and the cue. The drill is best for practicing the following skills:</p>
+          <ul>
+            <li>focus</li>
+            <li>shot readiness at all times</li>
+            <li>execution under pressure</li>
+          </ul>
+          <h2>Drill 2: Multiple gaps, randomized time and shot diet</h2>
+          <p>This exercise is designed to let you show your flexibility. Instead of waiting for a moment to shoot to kill, it forces you to execute a shot as soon as you hear the cue. For a snake shot, that lets you practice the movement from a relaxed position without making a decision early, and execute as soon as a gap opens or is noticed. Select the range of the timer for the randomized cues. Select 2 or more gaps, name them, and choose sounds that tell you what they mean (for example, choose 3 gaps and name them Straight, Long, and Middle; choose sounds you will recognize as those cues). Select the break value that lets you comfortably reset the ball into the shooting position between tries. The drill is best for practicing the following skills:</p>
+          <ul>
+            <li>flexibility and split-second decisions</li>
+            <li>observing the goalkeeper and using their errors</li>
+          </ul>
+          <h2>Drill 3: One gap, specific shot time</h2>
+          <p>This drill gives you a clear sense of shot time, particularly for shots later in the shot clock. It teaches consistency. Select a start time and an end time with no more than 1 second between them (for example, start at 6 and end at 7, and the cue always sounds in second 6). Select the break value that lets you comfortably reset the ball into the shooting position between tries. The drill is best for practicing the following skills:</p>
+          <ul>
+            <li>shot clock duration awareness</li>
+          </ul>
+          <p>And any other variations of the drills above.</p>
+        </details>
+      </div>
+      <div id="copy-pl" hidden>
+        <p>Ta aplikacja wspiera piłkarzykowe treningi strzeleckie poprzez losowy wybór momentu i/lub wariantu strzału. Wybierz przedział, w którym ma paść sygnał do strzału. Wybierz przerwę, której potrzebujesz, żeby z powrotem ustawić piłkę w pozycji strzeleckiej. Jeśli wybierzesz więcej niż jedną dziurę, każdej możesz nadać nazwę (na przykład krótki dół, długa góra, środek) i dźwięk z biblioteki telefonu.</p>
+        <details class="drills">
+          <summary>Przykładowe ćwiczenia, kliknij, żeby rozwinąć</summary>
+          <h2>Ćwiczenie 1: Jedna dziura, predeterminowany strzał w losowej sekundzie</h2>
+          <p>To ćwiczenie uczy atakowania w momencie pojawienia się dziury w obronie bramkarza. Ustaw czas startu i końca okna, w którym padnie losowy sygnał. Możesz użyć całego zakresu licznika (od sekundy 0 do 15) albo dowolnego innego przedziału (na przykład start w 5. sekundzie, żeby nie strzelać zbyt wcześnie na zegarze). Ustaw przerwę tak, żeby spokojnie zresetować piłkę w pozycji strzeleckiej między próbami. Wybierz 1 dziurę, żeby skorzystać z dźwięku bazowego. Dziurę wybierasz na stole, warto ustawić chłopki bramkarza tak, żeby trzeba było faktycznie w nią strzelić, a nie tylko o czasie. Ćwiczenie rozwija:</p>
+          <ul>
+            <li>skupienie</li>
+            <li>gotowość do strzału przez cały czas</li>
+            <li>egzekucję pod presją</li>
+          </ul>
+          <h2>Ćwiczenie 2: Wiele luk, losowy moment i wariant strzałów</h2>
+          <p>To ćwiczenie ma wyćwiczyć Twoją elastyczność. Zamiast cierpliwie czekać na tę jedyną lukę, która może nigdy nie nadejść, uczy elastyczności w egzekwowaniu strzału, gdy tylko pojawi się dziura. Przy snejku pozwala ćwiczyć strzał z dowolnej pozycji na piłowanej piłce. Ustaw zakres czasu losowego sygnału. Wybierz 2 lub więcej dziur, nazwij je i dobierz dźwięki, po których poznasz, co znaczą (na przykład 3 dziury: na wprost / środek, góra i dół, oraz dźwięki, które od razu z nimi skojarzysz). Ustaw przerwę tak, żeby spokojnie zresetować piłkę w pozycji strzeleckiej między próbami. Ćwiczenie najlepiej rozwija:</p>
+          <ul>
+            <li>elastyczność i szybkie decyzje</li>
+            <li>obserwowanie bramkarza i wykorzystywanie jego błędów</li>
+          </ul>
+          <h2>Ćwiczenie 3: Jedna luka, określony czas strzału</h2>
+          <p>To ćwiczenie trenuje jasne wyczucie momentu strzału, szczególnie przy strzałach później na zegarze. Uczy powtarzalności. Ustaw start i koniec tak, żeby dzieliła je najwyżej 1 sekunda (na przykład start 6 i koniec 7: sygnał zawsze pada w 6. sekundzie). Ustaw przerwę tak, żeby spokojnie zresetować piłkę w pozycji strzeleckiej między próbami. Ćwiczenie najlepiej rozwija:</p>
+          <ul>
+            <li>wyczucie trwania zegara strzału</li>
+          </ul>
+        </details>
+      </div>
     </header>
 
     <section class="card" aria-label="Timing">
       <div class="row">
-        <label for="start">Start</label>
+        <label for="start" data-i18n="start">Start</label>
         <div class="stepper">
-          <button class="step" type="button" data-bump="start" data-delta="-1" aria-label="Decrease start second">−</button>
+          <button class="step" type="button" data-bump="start" data-delta="-1" data-i18n-aria="startDown" aria-label="Decrease start second">−</button>
           <input id="start" size="2" inputmode="numeric" value="5" aria-describedby="start-unit">
           <span class="unit" id="start-unit">s</span>
-          <button class="step" type="button" data-bump="start" data-delta="1" aria-label="Increase start second">+</button>
+          <button class="step" type="button" data-bump="start" data-delta="1" data-i18n-aria="startUp" aria-label="Increase start second">+</button>
         </div>
       </div>
       <div class="row">
-        <label for="end">End</label>
+        <label for="end" data-i18n="end">End</label>
         <div class="stepper">
-          <button class="step" type="button" data-bump="end" data-delta="-1" aria-label="Decrease end second">−</button>
+          <button class="step" type="button" data-bump="end" data-delta="-1" data-i18n-aria="endDown" aria-label="Decrease end second">−</button>
           <input id="end" size="2" inputmode="numeric" value="15" aria-describedby="end-unit">
           <span class="unit" id="end-unit">s</span>
-          <button class="step" type="button" data-bump="end" data-delta="1" aria-label="Increase end second">+</button>
+          <button class="step" type="button" data-bump="end" data-delta="1" data-i18n-aria="endUp" aria-label="Increase end second">+</button>
         </div>
       </div>
       <div class="row">
-        <label for="break">Break</label>
+        <label for="break" data-i18n="breakLabel">Break</label>
         <div class="stepper">
-          <button class="step" type="button" data-bump="break" data-delta="-1" aria-label="Decrease break">−</button>
+          <button class="step" type="button" data-bump="break" data-delta="-1" data-i18n-aria="breakDown" aria-label="Decrease break">−</button>
           <input id="break" size="2" inputmode="numeric" value="10" aria-describedby="break-unit">
           <span class="unit" id="break-unit">s</span>
-          <button class="step" type="button" data-bump="break" data-delta="1" aria-label="Increase break">+</button>
+          <button class="step" type="button" data-bump="break" data-delta="1" data-i18n-aria="breakUp" aria-label="Increase break">+</button>
         </div>
       </div>
       <div class="row">
-        <label for="volume">Loudness</label>
+        <label for="volume" data-i18n="loudness">Loudness</label>
         <div class="volume">
           <input id="volume" type="range" min="5" max="100" value="80" aria-valuemin="5" aria-valuemax="100">
         </div>
@@ -497,14 +567,14 @@
 
     <section class="card" aria-label="Gaps">
       <div class="row">
-        <label for="spots">Gaps</label>
+        <label for="spots" data-i18n="gaps">Gaps</label>
         <div class="stepper">
-          <button class="step" type="button" data-bump="spots" data-delta="-1" aria-label="Fewer gaps">−</button>
+          <button class="step" type="button" data-bump="spots" data-delta="-1" data-i18n-aria="gapsDown" aria-label="Fewer gaps">−</button>
           <input id="spots" size="2" inputmode="numeric" value="1">
-          <button class="step" type="button" data-bump="spots" data-delta="1" aria-label="More gaps">+</button>
+          <button class="step" type="button" data-bump="spots" data-delta="1" data-i18n-aria="gapsUp" aria-label="More gaps">+</button>
         </div>
       </div>
-      <p class="hint">Name each gap and choose its sound. Short clips work best. From 2 upward, the call picks one of them at random.</p>
+      <p class="hint" data-i18n="hint">Name each gap and choose its sound. Short clips work best. From 2 upward, the call picks one of them at random.</p>
     </section>
 
     <section class="stage" aria-hidden="true">
@@ -525,7 +595,7 @@
 
     <div class="actions">
       <button class="primary" id="toggle" type="button">Start</button>
-      <button class="ghost" id="test" type="button">Test call</button>
+      <button class="ghost" id="test" type="button" data-i18n="testCall">Test call</button>
     </div>
 
     <section class="card" aria-label="Gap names">
@@ -537,7 +607,7 @@
       <span id="last-hit">Last hit: —</span>
     </div>
     <p class="error" id="error" role="alert"></p>
-    <p class="wake" id="wake" hidden>This page can’t keep the screen awake from here. Turn off auto-lock, or the phone may sleep and delay the whistle.</p>
+    <p class="wake" id="wake" data-i18n="wake" hidden>This page can’t keep the screen awake from here. Turn off auto-lock, or the phone may sleep and delay the whistle.</p>
     <p class="sr-only" id="live" aria-live="polite"></p>
   </main>
 
@@ -547,6 +617,117 @@
     const MAX_SEC = 3600;
     const MAX_CUES = 10;
     const BUILTIN_HZ = [262, 294, 330, 392, 440, 523, 587, 659, 784, 880];
+    const LANG_KEY = "sound-blast-lang";
+    const I18N = {
+      en: {
+        start: "Start",
+        end: "End",
+        breakLabel: "Break",
+        loudness: "Loudness",
+        gaps: "Gaps",
+        hint: "Name each gap and choose its sound. Short clips work best. From 2 upward, the call picks one of them at random.",
+        testCall: "Test call",
+        stop: "Stop",
+        play: "Play",
+        sound: "Sound",
+        clear: "Clear",
+        builtin: "Built-in tone",
+        soundFallback: "Sound",
+        namePlaceholder: "Name this gap",
+        nameAria: "Name for gap",
+        soundAria: "Sound file for gap",
+        startDown: "Decrease start second",
+        startUp: "Increase start second",
+        endDown: "Decrease end second",
+        endUp: "Increase end second",
+        breakDown: "Decrease break",
+        breakUp: "Increase break",
+        gapsDown: "Fewer gaps",
+        gapsUp: "More gaps",
+        ready: "READY",
+        counting: "COUNTING",
+        shoot: "SHOOT",
+        cue: "CUE",
+        gapPrefix: "Gap",
+        oneGap: "One gap · cue between ",
+        manyGaps: " gaps · one is called between ",
+        randomGap: "Random gap, somewhere in ",
+        cueSomewhere: "Cue somewhere in ",
+        nextRound: "Next round",
+        nextRoundIn: "Next round in ",
+        cuesRun: "Cues this run: ",
+        lastHit: "Last hit: ",
+        lastHitEmpty: "Last hit: —",
+        thisIsTheCall: "This is the call",
+        stopped: "Stopped.",
+        countingLive: "Counting. Cue between ",
+        and: " and ",
+        seconds: " seconds.",
+        breakFor: ". Break for ",
+        cuesSoFar: " seconds. Cues so far: ",
+        endError: "End has to be the same second as start, or later.",
+        blocked: "This browser blocked the sound.",
+        badFile: "That file could not be played. Try a short mp3 or wav.",
+        wake: "This page can’t keep the screen awake from here. Turn off auto-lock, or the phone may sleep and delay the cue.",
+      },
+      pl: {
+        start: "Start",
+        end: "Koniec",
+        breakLabel: "Przerwa",
+        loudness: "Głośność",
+        gaps: "Dziury",
+        hint: "Nazwij każdą z dziur i wybierz dla nich sygnał dźwiękowy. Gdy wybierzesz 2 lub więcej, aplikacja będzie losowo je wybierała w każdym powtórzeniu.",
+        testCall: "Przetestuj dźwięk",
+        stop: "Stop",
+        play: "Odtwórz",
+        sound: "Dźwięk",
+        clear: "Wyczyść",
+        builtin: "Standardowy dźwięk",
+        soundFallback: "Dźwięk",
+        namePlaceholder: "Nazwij dziurę",
+        nameAria: "Nazwij dziurę",
+        soundAria: "Wybierz dźwięk dla dziury",
+        startDown: "Obniż wartość startu odliczania",
+        startUp: "Podnieś wartość startu odliczania",
+        endDown: "Obniż wartość końca odliczania",
+        endUp: "Podnieś wartość końca odliczania",
+        breakDown: "Skróć przerwę",
+        breakUp: "Wydłuż przerwę",
+        gapsDown: "Mniej dziur",
+        gapsUp: "Więcej dziur",
+        ready: "GOTOWY",
+        counting: "ODLICZAM",
+        shoot: "STRZELAJ",
+        cue: "SYGNAŁ",
+        gapPrefix: "Dziura",
+        oneGap: "Jedna dziura / sygnał pomiędzy ",
+        manyGaps: " dziury / one is called between ",
+        randomGap: "losowa dziura, gdzieś pomiędzy ",
+        cueSomewhere: "Sygnał gdzieś w ",
+        nextRound: "następna runda",
+        nextRoundIn: "następna runda za ",
+        cuesRun: "powtórzeń w tej rundzie: ",
+        lastHit: "Ostatnie wywołanie: ",
+        lastHitEmpty: "Ostatnie wywołanie: —",
+        thisIsTheCall: "to jest dźwięk",
+        stopped: "Zatrzymany",
+        countingLive: "Odliczam. Sygnał między ",
+        and: " oraz ",
+        seconds: " sekundy",
+        breakFor: " Przerwa na ",
+        cuesSoFar: " sekund. Sygnałów do tej pory: ",
+        endError: "Koniec musi przypadać na tą samą sekundę co start, lub późniejszą",
+        blocked: "obecna przeglądarka zablokowała dźwięk",
+        badFile: "ten plik nie mógł zostać odtworzony. Spróbuj krótkiego .mp3 lub .wav",
+        wake: "Ta aplikacja nie może utrzymać ekranu przed zaśnięciem. Wyłącz automatyczne wygaszanie, lub telefon może wejść w tryb uśpienia i zaburzyć sygnał.",
+      },
+    };
+
+    let lang = "en";
+
+    function t(key) {
+      return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+    }
 
     const els = {
       start: document.getElementById("start"),
@@ -632,7 +813,7 @@
 
     function cueLabel(index) {
       const typed = (cueSlots[index].name || "").trim();
-      return typed || ("Gap " + (index + 1));
+      return typed || (t("gapPrefix") + " " + (index + 1));
     }
 
     function settingsValid() {
@@ -687,7 +868,7 @@
 
     function setRunningUI(running) {
       document.body.classList.toggle("is-running", running);
-      els.toggle.textContent = running ? "Stop" : "Start";
+      els.toggle.textContent = running ? t("stop") : t("start");
       els.toggle.setAttribute("aria-pressed", running ? "true" : "false");
       for (const input of [els.start, els.end, els.break, els.spots]) input.disabled = running;
       els.cueList.querySelectorAll("input, button").forEach((control) => {
@@ -727,39 +908,39 @@
       document.body.classList.toggle("is-break", state.running && state.phase === "break");
 
       const gaps = state.running ? state.spotCount : readSpots();
-      els.rounds.textContent = "Cues this run: " + state.rounds;
+      els.rounds.textContent = t("cuesRun") + state.rounds;
       els.lastHit.textContent = state.lastHit == null
-        ? "Last hit: —"
-        : "Last hit: " + state.lastHit.toFixed(1) + "s · " + state.cueName;
+        ? t("lastHitEmpty")
+        : t("lastHit") + state.lastHit.toFixed(1) + "s · " + state.cueName;
       els.number.classList.toggle("is-name", state.running && state.phase === "break");
 
       if (!state.running || state.phase === "idle") {
-        els.eyebrow.textContent = "READY";
+        els.eyebrow.textContent = t("ready");
         els.number.textContent = "0.0";
         els.caption.textContent = gaps > 1
-          ? gaps + " gaps · one is called between " + startSec + "–" + endSec + "s"
-          : "One gap · cue between " + startSec + "–" + endSec + "s · break " + breakSec + "s";
+          ? gaps + t("manyGaps") + startSec + "–" + endSec + "s"
+          : t("oneGap") + startSec + "–" + endSec + "s · " + t("breakLabel").toLowerCase() + " " + breakSec + "s";
         paintTrack(startSec, endSec, 0, "ready");
         return;
       }
 
       if (state.phase === "counting") {
-        els.eyebrow.textContent = "COUNTING";
+        els.eyebrow.textContent = t("counting");
         els.number.textContent = formatElapsed(elapsed);
         els.caption.textContent = gaps > 1
-          ? "Random gap, somewhere in " + startSec + "–" + endSec + "s"
-          : "Cue somewhere in " + startSec + "–" + endSec + "s";
+          ? t("randomGap") + startSec + "–" + endSec + "s"
+          : t("cueSomewhere") + startSec + "–" + endSec + "s";
         paintTrack(startSec, endSec, endSec === 0 ? 1 : elapsed / (endSec * 1000), "count");
         return;
       }
 
-      els.eyebrow.textContent = "SHOOT";
-      els.number.textContent = state.cueName || "SHOOT";
+      els.eyebrow.textContent = t("shoot");
+      els.number.textContent = state.cueName || t("shoot");
       if (breakSec === 0) {
-        els.caption.textContent = "Next round";
+        els.caption.textContent = t("nextRound");
       } else {
         const remain = Math.max(0, state.gapMs - elapsed);
-        els.caption.textContent = "Next round in " + Math.ceil(remain / 1000) + "s";
+        els.caption.textContent = t("nextRoundIn") + Math.ceil(remain / 1000) + "s";
       }
       const ratio = state.gapMs === 0 ? 1 : elapsed / state.gapMs;
       paintTrack(0, breakSec || 1, ratio, "break");
@@ -768,14 +949,14 @@
 
     function announce() {
       if (!state.running) {
-        els.live.textContent = "Stopped.";
+        els.live.textContent = t("stopped");
         return;
       }
       if (state.phase === "counting") {
-        els.live.textContent = "Counting. Whistle between " + state.startSec + " and " + state.endSec + " seconds.";
+        els.live.textContent = t("countingLive") + state.startSec + t("and") + state.endSec + t("seconds");
         return;
       }
-      els.live.textContent = state.cueName + ". Break for " + state.breakSec + " seconds. Cues so far: " + state.rounds + ".";
+      els.live.textContent = state.cueName + t("breakFor") + state.breakSec + t("cuesSoFar") + state.rounds + ".";
     }
 
     function getAudio() {
@@ -858,7 +1039,7 @@
       state.breakSec = readInt(els.break, 10);
       if (state.endSec < state.startSec) {
         stop();
-        showError("End has to be the same second as start, or later.");
+        showError(t("endError"));
         return;
       }
       state.spotCount = readSpots();
@@ -927,7 +1108,7 @@
       els.end.value = String(endSec);
       els.break.value = String(readInt(els.break, 10));
       if (endSec < startSec) {
-        showError("End has to be the same second as start, or later.");
+        showError(t("endError"));
         render();
         return;
       }
@@ -991,7 +1172,7 @@
       clearError();
       getAudio();
       const index = pickCueIndex(readSpots());
-      try { previewCue(index); } catch (err) { showError("This browser blocked the sound."); }
+      try { previewCue(index); } catch (err) { showError(t("blocked")); }
     });
 
     document.querySelectorAll(".step").forEach((button) => {
@@ -1024,7 +1205,7 @@
     }
 
     function soundLabel(index) {
-      return cueSlots[index].fileName || "Built-in tone";
+      return cueSlots[index].fileName || t("builtin");
     }
 
     function refreshSoundRow(index) {
@@ -1045,13 +1226,13 @@
       els.cueList.innerHTML = cueSlots.map((_, index) => (
         '<div class="cue" data-index="' + index + '">' +
           '<span class="cue-index">' + (index + 1) + '</span>' +
-          '<input class="cue-name" maxlength="24" placeholder="Name this gap" aria-label="Name for gap ' + (index + 1) + '">' +
+          '<input class="cue-name" maxlength="24" placeholder="' + t("namePlaceholder") + '" aria-label="' + t("nameAria") + " " + (index + 1) + '">' +
           '<div class="cue-actions">' +
-            '<span class="cue-file-name">Built-in tone</span>' +
-            '<button class="mini cue-play" type="button">Play</button>' +
-            '<button class="mini cue-pick" type="button">Sound</button>' +
-            '<button class="mini cue-clear" type="button" hidden>Clear</button>' +
-            '<input class="cue-file sr-only" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac" aria-label="Sound file for gap ' + (index + 1) + '">' +
+            '<span class="cue-file-name">' + t("builtin") + '</span>' +
+            '<button class="mini cue-play" type="button">' + t("play") + '</button>' +
+            '<button class="mini cue-pick" type="button">' + t("sound") + '</button>' +
+            '<button class="mini cue-clear" type="button" hidden>' + t("clear") + '</button>' +
+            '<input class="cue-file sr-only" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac" aria-label="' + t("soundAria") + " " + (index + 1) + '">' +
           '</div>' +
         '</div>'
       )).join("");
@@ -1063,9 +1244,9 @@
       if (state.running) return;
       clearTimeout(previewTimer);
       els.number.classList.add("is-name");
-      els.eyebrow.textContent = "CUE";
+      els.eyebrow.textContent = t("cue");
       els.number.textContent = cueLabel(index);
-      els.caption.textContent = "This is the call";
+      els.caption.textContent = t("thisIsTheCall");
       previewTimer = setTimeout(() => {
         if (!state.running) render();
       }, 900);
@@ -1120,7 +1301,7 @@
       clearError();
       const ctx = getAudio();
       if (!ctx) {
-        showError("This browser blocked the sound.");
+        showError(t("blocked"));
         return;
       }
       try {
@@ -1132,7 +1313,7 @@
         refreshSoundRow(index);
         previewCue(index);
       } catch (err) {
-        showError("That file could not be played. Try a short mp3 or wav.");
+        showError(t("badFile"));
       }
     }
 
@@ -1166,7 +1347,7 @@
         stored.keys.forEach((key, index) => {
           if (key < 0 || key >= MAX_CUES || !stored.values[index]) return;
           cueSlots[key].blob = stored.values[index].blob;
-          cueSlots[key].fileName = stored.values[index].fileName || "Sound";
+          cueSlots[key].fileName = stored.values[index].fileName || t("soundFallback");
           refreshSoundRow(key);
         });
       } catch (err) {
@@ -1211,10 +1392,62 @@
       if (!state.running) render();
     });
 
+    function localizeCueRows() {
+      if (!els.cueList) return;
+      els.cueList.querySelectorAll(".cue").forEach((row) => {
+        const index = Number(row.dataset.index);
+        const name = row.querySelector(".cue-name");
+        name.placeholder = t("namePlaceholder");
+        name.setAttribute("aria-label", t("nameAria") + " " + (index + 1));
+        row.querySelector(".cue-play").textContent = t("play");
+        row.querySelector(".cue-pick").textContent = t("sound");
+        row.querySelector(".cue-clear").textContent = t("clear");
+        row.querySelector(".cue-file").setAttribute("aria-label", t("soundAria") + " " + (index + 1));
+        refreshSoundRow(index);
+      });
+    }
+
+    function initialLang() {
+      try {
+        const saved = localStorage.getItem(LANG_KEY);
+        if (saved === "pl" || saved === "en") return saved;
+      } catch (err) { /* ignore */ }
+      return (navigator.language || "").toLowerCase().startsWith("pl") ? "pl" : "en";
+    }
+
+    function applyLanguage(next) {
+      lang = next === "pl" ? "pl" : "en";
+      document.documentElement.lang = lang;
+      const drills = [...document.querySelectorAll(".drills")];
+      const keepOpen = drills.some((el) => el.open);
+      drills.forEach((el) => { el.open = keepOpen; });
+      document.getElementById("copy-en").hidden = lang !== "en";
+      document.getElementById("copy-pl").hidden = lang !== "pl";
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        el.textContent = t(el.dataset.i18n);
+      });
+      document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+        el.setAttribute("aria-label", t(el.dataset.i18nAria));
+      });
+      document.querySelectorAll(".flag").forEach((btn) => {
+        btn.setAttribute("aria-pressed", btn.dataset.lang === lang ? "true" : "false");
+      });
+      if (els.toggle) els.toggle.textContent = state.running ? t("stop") : t("start");
+      localizeCueRows();
+      try { localStorage.setItem(LANG_KEY, lang); } catch (err) { /* ignore */ }
+      render();
+    }
+
+    document.querySelector(".flags").addEventListener("click", (event) => {
+      const btn = event.target.closest(".flag");
+      if (!btn) return;
+      applyLanguage(btn.dataset.lang);
+    });
+
     buildCueList();
     loadSettings();
     loadStoredSounds();
-    render();
+    applyLanguage(initialLang());
 
     function runSelfTest() {
       const results = [];
