@@ -1,7 +1,7 @@
 {
-  "name": "Shoot Cue",
-  "short_name": "Shoot",
-  "description": "A short whistle marks when to shoot, then a break, then the counter starts again.",
+  "name": "Foosball Shooting Drill Counter",
+  "short_name": "Foosball",
+  "description": "A cue marks when to shoot, and which gap, then a break, then the counter starts again.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

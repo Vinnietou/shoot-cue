@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Shoot Cue</title>
+  <title>Foosball Shooting Drill Counter</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -49,8 +49,9 @@
 
     header h1 {
       margin: 0;
-      font-size: 1.7rem;
-      letter-spacing: 0.08em;
+      font-size: 1.35rem;
+      letter-spacing: 0.02em;
+      line-height: 1.15;
       font-weight: 700;
     }
 
@@ -394,7 +395,7 @@
 <body>
   <main class="app">
     <header>
-      <h1>SHOOT CUE</h1>
+      <h1>Foosball Shooting Drill Counter</h1>
       <p>Each round counts up from zero and calls the shot between your start and end. One gap waits for a single opening. Several gaps also pick the spot at random.</p>
     </header>
 
@@ -953,6 +954,12 @@
     });
 
     if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
       navigator.serviceWorker.register("./sw.js").catch(() => {});
     }
 
