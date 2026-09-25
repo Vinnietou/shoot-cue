@@ -395,7 +395,7 @@
   <main class="app">
     <header>
       <h1>SHOOT CUE</h1>
-      <p>Each round counts up from zero and calls the shot between your start and end. One hole waits for a single opening. Several holes also pick the spot at random.</p>
+      <p>Each round counts up from zero and calls the shot between your start and end. One gap waits for a single opening. Several gaps also pick the spot at random.</p>
     </header>
 
     <section class="card" aria-label="Timing">
@@ -434,16 +434,16 @@
       </div>
     </section>
 
-    <section class="card" aria-label="Holes">
+    <section class="card" aria-label="Gaps">
       <div class="row">
-        <label for="spots">Holes</label>
+        <label for="spots">Gaps</label>
         <div class="stepper">
-          <button class="step" type="button" data-bump="spots" data-delta="-1" aria-label="Fewer holes">−</button>
+          <button class="step" type="button" data-bump="spots" data-delta="-1" aria-label="Fewer gaps">−</button>
           <input id="spots" size="2" inputmode="numeric" value="1">
-          <button class="step" type="button" data-bump="spots" data-delta="1" aria-label="More holes">+</button>
+          <button class="step" type="button" data-bump="spots" data-delta="1" aria-label="More gaps">+</button>
         </div>
       </div>
-      <p class="hint">Name each hole and choose its sound. Short clips work best. From 2 upward, the call picks one of them at random.</p>
+      <p class="hint">Name each gap and choose its sound. Short clips work best. From 2 upward, the call picks one of them at random.</p>
     </section>
 
     <section class="stage" aria-hidden="true">
@@ -467,7 +467,7 @@
       <button class="ghost" id="test" type="button">Test call</button>
     </div>
 
-    <section class="card" aria-label="Hole names">
+    <section class="card" aria-label="Gap names">
       <div id="cue-list"></div>
     </section>
 
@@ -571,7 +571,7 @@
 
     function cueLabel(index) {
       const typed = (cueSlots[index].name || "").trim();
-      return typed || ("Hole " + (index + 1));
+      return typed || ("Gap " + (index + 1));
     }
 
     function settingsValid() {
@@ -665,7 +665,7 @@
       const elapsed = state.running ? performance.now() - state.phaseStartedAt : 0;
       document.body.classList.toggle("is-break", state.running && state.phase === "break");
 
-      const holes = state.running ? state.spotCount : readSpots();
+      const gaps = state.running ? state.spotCount : readSpots();
       els.rounds.textContent = "Cues this run: " + state.rounds;
       els.lastHit.textContent = state.lastHit == null
         ? "Last hit: —"
@@ -675,9 +675,9 @@
       if (!state.running || state.phase === "idle") {
         els.eyebrow.textContent = "READY";
         els.number.textContent = "0.0";
-        els.caption.textContent = holes > 1
-          ? holes + " holes · one is called between " + startSec + "–" + endSec + "s"
-          : "One hole · cue between " + startSec + "–" + endSec + "s · break " + breakSec + "s";
+        els.caption.textContent = gaps > 1
+          ? gaps + " gaps · one is called between " + startSec + "–" + endSec + "s"
+          : "One gap · cue between " + startSec + "–" + endSec + "s · break " + breakSec + "s";
         paintTrack(startSec, endSec, 0, "ready");
         return;
       }
@@ -685,8 +685,8 @@
       if (state.phase === "counting") {
         els.eyebrow.textContent = "COUNTING";
         els.number.textContent = formatElapsed(elapsed);
-        els.caption.textContent = holes > 1
-          ? "Random hole, somewhere in " + startSec + "–" + endSec + "s"
+        els.caption.textContent = gaps > 1
+          ? "Random gap, somewhere in " + startSec + "–" + endSec + "s"
           : "Cue somewhere in " + startSec + "–" + endSec + "s";
         paintTrack(startSec, endSec, endSec === 0 ? 1 : elapsed / (endSec * 1000), "count");
         return;
@@ -978,13 +978,13 @@
       els.cueList.innerHTML = cueSlots.map((_, index) => (
         '<div class="cue" data-index="' + index + '">' +
           '<span class="cue-index">' + (index + 1) + '</span>' +
-          '<input class="cue-name" maxlength="24" placeholder="Name this hole" aria-label="Name for hole ' + (index + 1) + '">' +
+          '<input class="cue-name" maxlength="24" placeholder="Name this gap" aria-label="Name for gap ' + (index + 1) + '">' +
           '<div class="cue-actions">' +
             '<span class="cue-file-name">Built-in tone</span>' +
             '<button class="mini cue-play" type="button">Play</button>' +
             '<button class="mini cue-pick" type="button">Sound</button>' +
             '<button class="mini cue-clear" type="button" hidden>Clear</button>' +
-            '<input class="cue-file sr-only" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac" aria-label="Sound file for hole ' + (index + 1) + '">' +
+            '<input class="cue-file sr-only" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac" aria-label="Sound file for gap ' + (index + 1) + '">' +
           '</div>' +
         '</div>'
       )).join("");
@@ -1156,8 +1156,8 @@
       assert("low edge", pickDelayMs(5, 15, () => 0) === 5000);
       assert("high edge", pickDelayMs(5, 15, () => 0.999999) === 15000);
       assert("same second", pickDelayMs(8, 8, () => 0.4) === 8000);
-      assert("first hole", pickCueIndex(4, () => 0) === 0);
-      assert("last hole", pickCueIndex(4, () => 0.999) === 3);
+      assert("first gap", pickCueIndex(4, () => 0) === 0);
+      assert("last gap", pickCueIndex(4, () => 0.999) === 3);
 
       els.start.value = "4";
       els.end.value = "9";
@@ -1176,7 +1176,7 @@
       assert("blast increments", state.rounds === 1);
       assert("enters break", state.phase === "break");
       assert("records hit", state.lastHit === 4);
-      assert("names the hole", state.cueName === "Pull");
+      assert("names the gap", state.cueName === "Pull");
       state.phaseStartedAt = performance.now() - state.gapMs;
       evaluate();
       assert("counter restarts", state.phase === "counting");
