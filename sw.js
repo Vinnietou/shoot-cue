@@ -1,4 +1,4 @@
-const CACHE = "sound-blast-v5";
+const CACHE = "sound-blast-v6";
 const FILES = [
   "./",
   "./index.html",
