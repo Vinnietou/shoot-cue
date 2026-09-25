@@ -293,6 +293,88 @@
       line-height: 1.35;
     }
 
+    .hint {
+      margin: 8px 0 4px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .cue {
+      display: grid;
+      grid-template-columns: 1.5rem 1fr;
+      gap: 6px 8px;
+      align-items: center;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .cue[hidden] { display: none; }
+
+    .cue:first-child { border-top: 0; padding-top: 2px; }
+
+    .cue-index {
+      color: var(--acid);
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    .cue-name {
+      width: 100%;
+      min-width: 0;
+      background: transparent;
+      color: var(--ink);
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 1rem;
+      padding: 8px 0;
+    }
+
+    .cue-name:focus {
+      outline: none;
+      border-bottom-color: var(--acid);
+    }
+
+    .cue-actions {
+      grid-column: 2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .cue-file-name {
+      flex: 1;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mini {
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #2a2e22;
+      color: var(--ink);
+      padding: 0 10px;
+      font-size: 0.85rem;
+      touch-action: manipulation;
+    }
+
+    .mini:disabled,
+    .cue-name:disabled {
+      opacity: 0.4;
+    }
+
+    .number.is-name {
+      font-size: clamp(2.2rem, 12vw, 4.4rem);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -313,7 +395,7 @@
   <main class="app">
     <header>
       <h1>SHOOT CUE</h1>
-      <p>Each round counts up from zero. A short whistle marks the moment to shoot, somewhere between your start and end. Then it waits out the break and the counter starts again.</p>
+      <p>Each round counts up from zero and calls the shot between your start and end. One hole waits for a single opening. Several holes also pick the spot at random.</p>
     </header>
 
     <section class="card" aria-label="Timing">
@@ -352,6 +434,18 @@
       </div>
     </section>
 
+    <section class="card" aria-label="Holes">
+      <div class="row">
+        <label for="spots">Holes</label>
+        <div class="stepper">
+          <button class="step" type="button" data-bump="spots" data-delta="-1" aria-label="Fewer holes">−</button>
+          <input id="spots" size="2" inputmode="numeric" value="1">
+          <button class="step" type="button" data-bump="spots" data-delta="1" aria-label="More holes">+</button>
+        </div>
+      </div>
+      <p class="hint">Name each hole and choose its sound. Short clips work best. From 2 upward, the call picks one of them at random.</p>
+    </section>
+
     <section class="stage" aria-hidden="true">
       <p class="eyebrow" id="eyebrow">READY</p>
       <p class="number" id="number">0.0</p>
@@ -370,8 +464,12 @@
 
     <div class="actions">
       <button class="primary" id="toggle" type="button">Start</button>
-      <button class="ghost" id="test" type="button">Test whistle</button>
+      <button class="ghost" id="test" type="button">Test call</button>
     </div>
+
+    <section class="card" aria-label="Hole names">
+      <div id="cue-list"></div>
+    </section>
 
     <div class="meta">
         <span id="rounds">Cues this run: 0</span>
@@ -383,15 +481,19 @@
   </main>
 
   <script>
-    const STORAGE_KEY = "sound-blast-settings-v1";
+    const STORAGE_KEY = "sound-blast-settings-v2";
     const CUE_MS = 320;
     const MAX_SEC = 3600;
+    const MAX_CUES = 10;
+    const BUILTIN_HZ = [262, 294, 330, 392, 440, 523, 587, 659, 784, 880];
 
     const els = {
       start: document.getElementById("start"),
       end: document.getElementById("end"),
       break: document.getElementById("break"),
       volume: document.getElementById("volume"),
+      spots: document.getElementById("spots"),
+      cueList: document.getElementById("cue-list"),
       eyebrow: document.getElementById("eyebrow"),
       number: document.getElementById("number"),
       caption: document.getElementById("caption"),
@@ -419,7 +521,20 @@
       rounds: 0,
       lastHit: null,
       timer: null,
+      spotCount: 1,
+      cueIndex: 0,
+      cueName: "",
     };
+
+    const cueSlots = Array.from({ length: MAX_CUES }, () => ({
+      name: "",
+      fileName: "",
+      blob: null,
+      buffer: null,
+    }));
+
+    let previewTimer = null;
+    let activeSource = null;
 
     let audioCtx = null;
     let compressor = null;
@@ -443,6 +558,22 @@
       return min + Math.floor(rand() * (max - min + 1));
     }
 
+    function readSpots() {
+      const n = Number.parseInt(String(els.spots.value).trim(), 10);
+      if (!Number.isFinite(n)) return 1;
+      return Math.min(MAX_CUES, Math.max(1, n));
+    }
+
+    function pickCueIndex(count, rand = Math.random) {
+      const n = Math.min(MAX_CUES, Math.max(1, count));
+      return Math.floor(rand() * n);
+    }
+
+    function cueLabel(index) {
+      const typed = (cueSlots[index].name || "").trim();
+      return typed || ("Hole " + (index + 1));
+    }
+
     function settingsValid() {
       return readInt(els.end, 15) >= readInt(els.start, 5);
     }
@@ -462,6 +593,8 @@
           end: els.end.value,
           break: els.break.value,
           volume: els.volume.value,
+          spots: els.spots.value,
+          names: cueSlots.map((cue) => cue.name),
         }));
       } catch (err) {
         /* private mode can block storage */
@@ -477,6 +610,15 @@
         if (saved.end != null) els.end.value = saved.end;
         if (saved.break != null) els.break.value = saved.break;
         if (saved.volume != null) els.volume.value = saved.volume;
+        if (saved.spots != null) els.spots.value = String(Math.min(MAX_CUES, Math.max(1, Number(saved.spots) || 1)));
+        if (Array.isArray(saved.names)) {
+          saved.names.slice(0, MAX_CUES).forEach((name, index) => {
+            cueSlots[index].name = String(name || "");
+            const field = els.cueList.querySelector('.cue[data-index="' + index + '"] .cue-name');
+            if (field) field.value = cueSlots[index].name;
+          });
+        }
+        showCueRows();
       } catch (err) {
         /* ignore broken storage */
       }
@@ -486,7 +628,10 @@
       document.body.classList.toggle("is-running", running);
       els.toggle.textContent = running ? "Stop" : "Start";
       els.toggle.setAttribute("aria-pressed", running ? "true" : "false");
-      for (const input of [els.start, els.end, els.break]) input.disabled = running;
+      for (const input of [els.start, els.end, els.break, els.spots]) input.disabled = running;
+      els.cueList.querySelectorAll("input, button").forEach((control) => {
+        control.disabled = running;
+      });
       for (const button of document.querySelectorAll(".step")) button.disabled = running;
       els.test.disabled = running;
     }
@@ -520,15 +665,19 @@
       const elapsed = state.running ? performance.now() - state.phaseStartedAt : 0;
       document.body.classList.toggle("is-break", state.running && state.phase === "break");
 
+      const holes = state.running ? state.spotCount : readSpots();
       els.rounds.textContent = "Cues this run: " + state.rounds;
       els.lastHit.textContent = state.lastHit == null
         ? "Last hit: —"
-        : "Last hit: " + state.lastHit.toFixed(1) + "s";
+        : "Last hit: " + state.lastHit.toFixed(1) + "s · " + state.cueName;
+      els.number.classList.toggle("is-name", state.running && state.phase === "break");
 
       if (!state.running || state.phase === "idle") {
         els.eyebrow.textContent = "READY";
         els.number.textContent = "0.0";
-        els.caption.textContent = "Whistle between " + startSec + "–" + endSec + "s · break " + breakSec + "s";
+        els.caption.textContent = holes > 1
+          ? holes + " holes · one is called between " + startSec + "–" + endSec + "s"
+          : "One hole · cue between " + startSec + "–" + endSec + "s · break " + breakSec + "s";
         paintTrack(startSec, endSec, 0, "ready");
         return;
       }
@@ -536,19 +685,20 @@
       if (state.phase === "counting") {
         els.eyebrow.textContent = "COUNTING";
         els.number.textContent = formatElapsed(elapsed);
-        els.caption.textContent = "Whistle somewhere in " + startSec + "–" + endSec + "s";
+        els.caption.textContent = holes > 1
+          ? "Random hole, somewhere in " + startSec + "–" + endSec + "s"
+          : "Cue somewhere in " + startSec + "–" + endSec + "s";
         paintTrack(startSec, endSec, endSec === 0 ? 1 : elapsed / (endSec * 1000), "count");
         return;
       }
 
-      els.eyebrow.textContent = "BREAK";
+      els.eyebrow.textContent = "SHOOT";
+      els.number.textContent = state.cueName || "SHOOT";
       if (breakSec === 0) {
-        els.number.textContent = "···";
         els.caption.textContent = "Next round";
       } else {
         const remain = Math.max(0, state.gapMs - elapsed);
-        els.number.textContent = String(Math.ceil(remain / 1000));
-        els.caption.textContent = "Counter starts again after the break";
+        els.caption.textContent = "Next round in " + Math.ceil(remain / 1000) + "s";
       }
       const ratio = state.gapMs === 0 ? 1 : elapsed / state.gapMs;
       paintTrack(0, breakSec || 1, ratio, "break");
@@ -564,7 +714,7 @@
         els.live.textContent = "Counting. Whistle between " + state.startSec + " and " + state.endSec + " seconds.";
         return;
       }
-      els.live.textContent = "Shoot. Break for " + state.breakSec + " seconds. Cues so far: " + state.rounds + ".";
+      els.live.textContent = state.cueName + ". Break for " + state.breakSec + " seconds. Cues so far: " + state.rounds + ".";
     }
 
     function getAudio() {
@@ -584,50 +734,54 @@
       return audioCtx;
     }
 
-    function playBlast() {
+    function outputGain(when) {
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(Math.max(0.05, Math.min(1, Number(els.volume.value) / 100)), when);
+      gain.connect(compressor);
+      return gain;
+    }
+
+    function stopActiveSound() {
+      if (!activeSource) return;
+      try { activeSource.stop(); } catch (err) { /* already stopped */ }
+      activeSource = null;
+    }
+
+    function playBuiltin(index) {
       const ctx = getAudio();
       if (!ctx || !compressor) return;
+      stopActiveSound();
       const when = ctx.currentTime;
-      const dur = 0.2;
-      const master = ctx.createGain();
-      master.gain.setValueAtTime(Math.max(0.05, Math.min(1, Number(els.volume.value) / 100)), when);
-      master.connect(compressor);
-
+      const freq = BUILTIN_HZ[index] || 440;
       const osc = ctx.createOscillator();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(1900, when);
-      osc.frequency.exponentialRampToValueAtTime(3600, when + 0.04);
-      osc.frequency.exponentialRampToValueAtTime(2700, when + dur);
+      osc.frequency.setValueAtTime(freq, when);
       const tone = ctx.createGain();
       tone.gain.setValueAtTime(0.0001, when);
-      tone.gain.exponentialRampToValueAtTime(0.95, when + 0.006);
-      tone.gain.setValueAtTime(0.8, when + 0.12);
-      tone.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-      osc.connect(tone).connect(master);
+      tone.gain.exponentialRampToValueAtTime(0.9, when + 0.012);
+      tone.gain.exponentialRampToValueAtTime(0.0001, when + 0.18);
+      const dest = outputGain(when);
+      osc.connect(tone).connect(dest);
       osc.start(when);
-      osc.stop(when + dur + 0.02);
-
-      const length = Math.floor(ctx.sampleRate * dur);
-      const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < length; i += 1) data[i] = Math.random() * 2 - 1;
-      const noise = ctx.createBufferSource();
-      noise.buffer = buffer;
-      const band = ctx.createBiquadFilter();
-      band.type = "bandpass";
-      band.Q.value = 10;
-      band.frequency.setValueAtTime(1900, when);
-      band.frequency.exponentialRampToValueAtTime(3600, when + 0.04);
-      band.frequency.exponentialRampToValueAtTime(2700, when + dur);
-      const breath = ctx.createGain();
-      breath.gain.setValueAtTime(0.0001, when);
-      breath.gain.exponentialRampToValueAtTime(0.16, when + 0.008);
-      breath.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-      noise.connect(band).connect(breath).connect(master);
-      noise.start(when);
-
+      osc.stop(when + 0.2);
+      activeSource = osc;
       if (navigator.vibrate) {
-        try { navigator.vibrate(50); } catch (err) { /* ignore */ }
+        try { navigator.vibrate(40); } catch (err) { /* ignore */ }
+      }
+    }
+
+    function playBuffer(buffer) {
+      const ctx = getAudio();
+      if (!ctx || !compressor || !buffer) return;
+      stopActiveSound();
+      const when = ctx.currentTime;
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(outputGain(when));
+      source.start(when);
+      activeSource = source;
+      if (navigator.vibrate) {
+        try { navigator.vibrate(40); } catch (err) { /* ignore */ }
       }
     }
 
@@ -646,6 +800,7 @@
         showError("End has to be the same second as start, or later.");
         return;
       }
+      state.spotCount = readSpots();
       state.blastAtMs = pickDelayMs(state.startSec, state.endSec);
       state.phase = "counting";
       state.phaseStartedAt = performance.now();
@@ -653,9 +808,12 @@
     }
 
     function triggerBlast() {
+      const index = pickCueIndex(state.spotCount || readSpots());
+      state.cueIndex = index;
+      state.cueName = cueLabel(index);
       state.lastHit = state.blastAtMs / 1000;
       state.rounds += 1;
-      try { playBlast(); } catch (err) { /* audio can fail before a gesture */ }
+      try { playCue(index); } catch (err) { /* audio can fail before a gesture */ }
       flash();
       const configured = state.breakSec * 1000;
       state.gapMs = Math.max(configured, CUE_MS);
@@ -716,6 +874,8 @@
       getAudio();
       state.rounds = 0;
       state.lastHit = null;
+      state.cueName = "";
+      state.spotCount = readSpots();
       state.running = true;
       setRunningUI(true);
       beginCounting();
@@ -742,7 +902,10 @@
       const startSec = readInt(els.start, 5);
       const endSec = readInt(els.end, 15);
       const breakSec = readInt(els.break, 10);
-      if (which === "start") {
+      if (which === "spots") {
+        els.spots.value = String(Math.min(MAX_CUES, Math.max(1, readSpots() + delta)));
+        showCueRows();
+      } else if (which === "start") {
         const next = clampSec(startSec + delta);
         els.start.value = String(next);
         if (next > endSec) els.end.value = String(next);
@@ -766,7 +929,8 @@
     els.test.addEventListener("click", () => {
       clearError();
       getAudio();
-      try { playBlast(); } catch (err) { showError("This browser blocked the whistle."); }
+      const index = pickCueIndex(readSpots());
+      try { previewCue(index); } catch (err) { showError("This browser blocked the sound."); }
     });
 
     document.querySelectorAll(".step").forEach((button) => {
@@ -775,8 +939,9 @@
       });
     });
 
-    for (const input of [els.start, els.end, els.break, els.volume]) {
+    for (const input of [els.start, els.end, els.break, els.spots, els.volume]) {
       input.addEventListener("input", () => {
+        if (input === els.spots) showCueRows();
         clearError();
         saveSettings();
         if (!state.running) render();
@@ -791,7 +956,197 @@
       navigator.serviceWorker.register("./sw.js").catch(() => {});
     }
 
+    function soundLabel(index) {
+      return cueSlots[index].fileName || "Built-in tone";
+    }
+
+    function refreshSoundRow(index) {
+      const row = els.cueList.querySelector('.cue[data-index="' + index + '"]');
+      if (!row) return;
+      row.querySelector(".cue-file-name").textContent = soundLabel(index);
+      row.querySelector(".cue-clear").hidden = !cueSlots[index].fileName;
+    }
+
+    function showCueRows() {
+      const count = readSpots();
+      els.cueList.querySelectorAll(".cue").forEach((row) => {
+        row.hidden = Number(row.dataset.index) >= count;
+      });
+    }
+
+    function buildCueList() {
+      els.cueList.innerHTML = cueSlots.map((_, index) => (
+        '<div class="cue" data-index="' + index + '">' +
+          '<span class="cue-index">' + (index + 1) + '</span>' +
+          '<input class="cue-name" maxlength="24" placeholder="Name this hole" aria-label="Name for hole ' + (index + 1) + '">' +
+          '<div class="cue-actions">' +
+            '<span class="cue-file-name">Built-in tone</span>' +
+            '<button class="mini cue-play" type="button">Play</button>' +
+            '<button class="mini cue-pick" type="button">Sound</button>' +
+            '<button class="mini cue-clear" type="button" hidden>Clear</button>' +
+            '<input class="cue-file sr-only" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac" aria-label="Sound file for hole ' + (index + 1) + '">' +
+          '</div>' +
+        '</div>'
+      )).join("");
+      showCueRows();
+    }
+
+    function previewCue(index) {
+      playCue(index);
+      if (state.running) return;
+      clearTimeout(previewTimer);
+      els.number.classList.add("is-name");
+      els.eyebrow.textContent = "CUE";
+      els.number.textContent = cueLabel(index);
+      els.caption.textContent = "This is the call";
+      previewTimer = setTimeout(() => {
+        if (!state.running) render();
+      }, 900);
+    }
+
+    function openSoundDb() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("shoot-cue-sounds", 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("cues");
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function persistSound(index) {
+      const db = await openSoundDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction("cues", "readwrite");
+        const cue = cueSlots[index];
+        if (!cue.blob) tx.objectStore("cues").delete(index);
+        else tx.objectStore("cues").put({ blob: cue.blob, fileName: cue.fileName }, index);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      db.close();
+    }
+
+    async function ensureBuffer(index) {
+      const cue = cueSlots[index];
+      if (!cue || cue.buffer || !cue.blob) return cue ? cue.buffer : null;
+      const ctx = getAudio();
+      if (!ctx) return null;
+      const raw = await cue.blob.arrayBuffer();
+      cue.buffer = await ctx.decodeAudioData(raw.slice(0));
+      return cue.buffer;
+    }
+
+    function playCue(index) {
+      const cue = cueSlots[index];
+      const start = () => {
+        if (cue && cue.buffer) playBuffer(cue.buffer);
+        else playBuiltin(index);
+      };
+      if (cue && cue.blob && !cue.buffer) {
+        ensureBuffer(index).then(start).catch(start);
+        return;
+      }
+      start();
+    }
+
+    async function useSoundFile(index, file) {
+      clearError();
+      const ctx = getAudio();
+      if (!ctx) {
+        showError("This browser blocked the sound.");
+        return;
+      }
+      try {
+        const raw = await file.arrayBuffer();
+        cueSlots[index].buffer = await ctx.decodeAudioData(raw.slice(0));
+        cueSlots[index].blob = new Blob([raw], { type: file.type || "application/octet-stream" });
+        cueSlots[index].fileName = file.name;
+        await persistSound(index);
+        refreshSoundRow(index);
+        previewCue(index);
+      } catch (err) {
+        showError("That file could not be played. Try a short mp3 or wav.");
+      }
+    }
+
+    async function clearSound(index) {
+      cueSlots[index].blob = null;
+      cueSlots[index].buffer = null;
+      cueSlots[index].fileName = "";
+      refreshSoundRow(index);
+      try { await persistSound(index); } catch (err) { /* ignore storage errors */ }
+    }
+
+    async function loadStoredSounds() {
+      try {
+        const db = await openSoundDb();
+        const stored = await new Promise((resolve, reject) => {
+          const tx = db.transaction("cues", "readonly");
+          const valuesRequest = tx.objectStore("cues").getAll();
+          const keysRequest = tx.objectStore("cues").getAllKeys();
+          const out = {};
+          valuesRequest.onsuccess = () => {
+            out.values = valuesRequest.result;
+            if (out.keys) resolve(out);
+          };
+          keysRequest.onsuccess = () => {
+            out.keys = keysRequest.result;
+            if (out.values) resolve(out);
+          };
+          tx.onerror = () => reject(tx.error);
+        });
+        db.close();
+        stored.keys.forEach((key, index) => {
+          if (key < 0 || key >= MAX_CUES || !stored.values[index]) return;
+          cueSlots[key].blob = stored.values[index].blob;
+          cueSlots[key].fileName = stored.values[index].fileName || "Sound";
+          refreshSoundRow(key);
+        });
+      } catch (err) {
+        /* private mode can block storage */
+      }
+    }
+
+    els.cueList.addEventListener("click", (event) => {
+      const row = event.target.closest(".cue");
+      if (!row || state.running) return;
+      const index = Number(row.dataset.index);
+      if (event.target.closest(".cue-play")) {
+        clearError();
+        getAudio();
+        previewCue(index);
+      } else if (event.target.closest(".cue-pick")) {
+        row.querySelector(".cue-file").click();
+      } else if (event.target.closest(".cue-clear")) {
+        clearSound(index);
+      }
+    });
+
+    els.cueList.addEventListener("input", (event) => {
+      if (!event.target.classList.contains("cue-name")) return;
+      const index = Number(event.target.closest(".cue").dataset.index);
+      cueSlots[index].name = event.target.value;
+      saveSettings();
+    });
+
+    els.cueList.addEventListener("change", (event) => {
+      if (!event.target.classList.contains("cue-file")) return;
+      const index = Number(event.target.closest(".cue").dataset.index);
+      const file = event.target.files && event.target.files[0];
+      event.target.value = "";
+      if (file) useSoundFile(index, file);
+    });
+
+    els.spots.addEventListener("change", () => {
+      els.spots.value = String(readSpots());
+      showCueRows();
+      saveSettings();
+      if (!state.running) render();
+    });
+
+    buildCueList();
     loadSettings();
+    loadStoredSounds();
     render();
 
     function runSelfTest() {
@@ -801,6 +1156,8 @@
       assert("low edge", pickDelayMs(5, 15, () => 0) === 5000);
       assert("high edge", pickDelayMs(5, 15, () => 0.999999) === 15000);
       assert("same second", pickDelayMs(8, 8, () => 0.4) === 8000);
+      assert("first hole", pickCueIndex(4, () => 0) === 0);
+      assert("last hole", pickCueIndex(4, () => 0.999) === 3);
 
       els.start.value = "4";
       els.end.value = "9";
@@ -813,10 +1170,13 @@
       state.phase = "counting";
       state.blastAtMs = 4000;
       state.phaseStartedAt = performance.now() - 4000;
+      state.spotCount = 1;
+      cueSlots[0].name = "Pull";
       evaluate();
       assert("blast increments", state.rounds === 1);
       assert("enters break", state.phase === "break");
       assert("records hit", state.lastHit === 4);
+      assert("names the hole", state.cueName === "Pull");
       state.phaseStartedAt = performance.now() - state.gapMs;
       evaluate();
       assert("counter restarts", state.phase === "counting");
